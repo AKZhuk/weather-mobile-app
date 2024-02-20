@@ -3,12 +3,17 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { MyTheme } from '../../theme';
 import { City, Location } from '../../types';
 
-const highlightedText = (text: string, inputValue: string) => {
-  const match = text.slice(0, inputValue.length);
+const highlightedText = (
+  name: string,
+  state: string | undefined,
+  inputValue: string,
+) => {
+  const text = state ? `${name}, ${state}` : name;
 
+  const match = text.slice(0, inputValue.length);
   return (
-    <Text style={styles.suggestText}>
-      <Text style={styles.highlighted}>{match}</Text>
+    <Text style={styles.text}>
+      <Text style={styles.text__highlighted}>{match}</Text>
       {text.slice(inputValue.length)}
     </Text>
   );
@@ -26,7 +31,7 @@ export default function AutoComplete({
   return (
     <>
       {locations.length > 0 ? (
-        <ScrollView style={styles.suggest}>
+        <ScrollView style={styles.container}>
           {locations?.map(({ lon, lat, name, state }, idx) => (
             <TouchableOpacity
               key={lon + lat + idx}
@@ -37,7 +42,7 @@ export default function AutoComplete({
                 });
               }}
             >
-              {highlightedText(`${name}, ${state}`, inputValue)}
+              {highlightedText(name, state, inputValue)}
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -47,17 +52,17 @@ export default function AutoComplete({
 }
 
 const styles = StyleSheet.create({
-  suggest: {
+  container: {
     flex: 1,
     padding: 30,
     height: '100%',
   },
-  suggestText: {
+  text: {
     fontSize: 20,
     color: MyTheme.colors.textSecondary,
     marginBottom: 10,
   },
-  highlighted: {
+  text__highlighted: {
     color: MyTheme.colors.text,
     fontWeight: '700',
   },

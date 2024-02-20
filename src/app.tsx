@@ -1,14 +1,14 @@
 import React from 'react';
-import { StatusBar, StyleSheet, View } from 'react-native';
+import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
 import MainLayout from './components/mainLayout';
 import { MyTheme } from './theme';
 
 export default function App() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar />
       <MainLayout />
-    </View>
+    </SafeAreaView>
   );
 }
 

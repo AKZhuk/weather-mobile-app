@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
+  Animated,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -11,15 +10,12 @@ import {
 import { parseData } from '../helpers';
 import SearchBar from './search/searchBar';
 import { getLocation } from '../geoLocation';
-import WeekForecast from './weekForecast';
-import CurrentConditions from './currentConditions';
 import { City, Coordinates, Units } from '../types';
 import { fetchForecast } from '../api/weather';
+import ErrorView from './errorView';
 import Widget from './Widget';
-
-// const HEADER_MAX_HEIGHT = 250;
-// const HEADER_MIN_HEIGHT = 100;
-// const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
+import WeekForecast from './weekForecast';
+import CurrentConditions from './currentConditions';
 
 export default function MainLayout() {
   const [weatherData, setWeatherData] = useState(null);
@@ -30,17 +26,7 @@ export default function MainLayout() {
   });
   const [units, setUnits] = useState<Units>('metric');
   const [refreshing, setRefreshing] = useState(false);
-  // const [scrollY] = useState(new Animated.Value(0));
-  const [isHorizontal, setIsHorizontal] = useState(false);
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const { contentOffset } = event.nativeEvent;
-    if (contentOffset.y > 100) {
-      setIsHorizontal(true);
-    } else {
-      setIsHorizontal(false);
-    }
-  };
+  const [scrollY] = useState(new Animated.Value(0));
 
   const onRefresh = React.useCallback(async (coordinate: Coordinates) => {
     setRefreshing(true);
@@ -57,6 +43,7 @@ export default function MainLayout() {
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
+      setWeatherData(null);
       Alert.alert('Error', error);
       console.error(error);
     }
@@ -78,18 +65,10 @@ export default function MainLayout() {
           coordinates,
         });
       }
-
-      setIsLoading(false);
     };
 
     getUserLocation();
   }, []);
-
-  // const headerHeight = scrollY.interpolate({
-  //   inputRange: [0, 100],
-  //   outputRange: [0, 1],
-  //   extrapolate: 'clamp',
-  // });
 
   return (
     <>
@@ -109,27 +88,26 @@ export default function MainLayout() {
             stickyHeaderIndices={[0]}
             indicatorStyle="white"
             scrollEventThrottle={16}
-            onScroll={handleScroll}
+            onScroll={Animated.event([
+              { nativeEvent: { contentOffset: { y: scrollY } } },
+            ])}
           >
             <Widget
               city={city?.name}
               {...weatherData.widget}
-              isHorizontal={isHorizontal}
+              scrollY={scrollY}
             />
             <WeekForecast data={weatherData.forecast} />
             <CurrentConditions data={weatherData.daily} />
           </ScrollView>
         </>
       )}
-      {/* {!weatherData && !isLoading && (
-        <Image source={notAvailable} style={styles.icon}></Image>
-      )} */}
+      {!weatherData && !isLoading && <ErrorView />}
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  icon: { height: 150, width: 200 },
   scrollView: {
     paddingHorizontal: 20,
     marginTop: 10,

@@ -1,44 +1,77 @@
 import React from 'react';
-import { Animated, Image, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 import { MyTheme } from '../theme';
 
+const animationConfig: {
+  inputRange: [number, number];
+  extrapolate: Animated.ExtrapolateType;
+} = {
+  inputRange: [0, 300],
+  extrapolate: 'clamp',
+};
 export default function Widget({
   city,
   icon,
   temp,
   description,
-  isHorizontal,
+  scrollY,
 }: {
   city: string;
   icon: string;
   temp: string;
   description: string;
   isHorizontal: boolean;
+  scrollY: Animated.Value;
 }) {
+  const cityFontSize = scrollY.interpolate({
+    ...animationConfig,
+    outputRange: [32, 22],
+  });
+
+  const tempFontSize = scrollY.interpolate({
+    ...animationConfig,
+    outputRange: [64, 32],
+  });
+
+  const imageWidth = scrollY.interpolate({
+    ...animationConfig,
+    outputRange: [250, 80],
+  });
+
+  const imageHeight = scrollY.interpolate({
+    ...animationConfig,
+    outputRange: [180, 80],
+  });
+
+  const isHorizontal = Number(JSON.stringify(imageWidth)) < 120;
+
   return (
-    <Animated.View
+    <View
       style={{
         ...styles.container,
         flexDirection: isHorizontal ? 'row' : 'column',
       }}
     >
       <View>
-        <Text
+        <Animated.Text
           style={{
             ...styles.city,
             textAlign: isHorizontal ? 'left' : 'center',
+            fontSize: cityFontSize,
           }}
         >
           {city}
-        </Text>
+        </Animated.Text>
         <Text style={styles.description}>{description}</Text>
       </View>
-      <Image
+      <Animated.Image
         source={{ uri: icon }}
-        style={isHorizontal ? styles.icon_row : styles.icon}
+        style={{ height: imageHeight, width: imageWidth }}
       />
-      <Text style={styles.temperature}>{temp}°</Text>
-    </Animated.View>
+      <Animated.Text style={{ ...styles.temperature, fontSize: tempFontSize }}>
+        {temp}°
+      </Animated.Text>
+    </View>
   );
 }
 
@@ -46,20 +79,16 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: 15,
     backgroundColor: MyTheme.colors.background,
   },
   city: {
-    fontSize: 32,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: '500',
     color: MyTheme.colors.text,
   },
-  icon: { height: 150, width: 200 },
-  icon_row: { height: 80, width: 80 },
   temperature: {
     fontSize: 46,
-    fontWeight: '700',
+    fontWeight: '200',
     textAlign: 'center',
     color: MyTheme.colors.text,
   },
